@@ -1,20 +1,18 @@
 package br.com.gwoo.infra;
 
-import java.text.Format;
-
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManagerListener;
-import org.jivesoftware.smack.MessageListener;
+import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 
 public class FakeAuctionServer {
 
-	private static final String XMPP_HOSTNAME = "localhost";
-	private static final String ITEM_ID_AS_LOGIN = "auction-%s";
+	public static final String XMPP_HOSTNAME = "localhost";
+	public static final String ITEM_ID_AS_LOGIN = "auction-%s";
+	public static final String AUCTION_RESOURCE = "Auction";
 	private static final String AUCTION_PASSWORD = "auction";
-	private static final String AUCTION_RESOURCE = "Auction";
 	
 	private final String itemId;
 	private final XMPPConnection connection;
@@ -23,12 +21,12 @@ public class FakeAuctionServer {
 
 	public FakeAuctionServer(String itemId) {
 		this.itemId = itemId;
-		this.connection = new XMPPConnection(XMPP_HOSTNAME);
+		this.connection = new XMPPConnection(new ConnectionConfiguration("localhost", 5222));
 	}
 	
 	public void startSellingItem() throws XMPPException{
 		connection.connect();
-		connection.login(format(ITEM_ID_AS_LOGIN, getItemId()),AUCTION_PASSWORD, AUCTION_RESOURCE);
+		connection.login(String.format(ITEM_ID_AS_LOGIN, getItemId()),AUCTION_PASSWORD, AUCTION_RESOURCE);
 		connection.getChatManager().addChatListener(
 				new ChatManagerListener() {
 					@Override
@@ -37,11 +35,6 @@ public class FakeAuctionServer {
 						chat.addMessageListener(messageListener);
 					}
 			});		
-	}
-	
-	private String format(String itemIdAsLogin, String itemId2) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	public void hasReceivedJoinRequestFromSniper() throws InterruptedException{
