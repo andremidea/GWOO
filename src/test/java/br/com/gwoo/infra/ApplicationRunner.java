@@ -1,11 +1,14 @@
 package br.com.gwoo.infra;
 
-import br.com.gwoo.main.Main;
+import br.com.gwoo.main.Main;	
+import br.com.gwoo.main.MainWindow;
 import static br.com.gwoo.infra.Constants.*;
+
 
 public class ApplicationRunner {
 	public static final String SNIPER_ID = "sniper";
 	public static final String SNIPER_PASSWORD = "sniper";
+	public static String SNIPER_XMPP_ID = "sniper@andreubuntuvm/Auction";
 	private AuctionSniperDriver driver;
 	
 	public void startBiddingIn(final FakeAuctionServer auction) {
@@ -33,6 +36,10 @@ public class ApplicationRunner {
 		if(driver != null){
 			driver.dispose();
 		}
+	}
+
+	public void hasShownSniperIsBidding() {
+		driver.showsSniperStatus(STATUS_BIDDING);		
 	}
 
 }

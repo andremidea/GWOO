@@ -1,5 +1,7 @@
 package br.com.gwoo.main;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Locale;
 import static br.com.gwoo.infra.Constants.*;
 import javax.swing.SwingUtilities;
@@ -12,13 +14,19 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 
 public class Main {
-	private MainWindow ui;
+	public static MainWindow ui;
 
 	@SuppressWarnings("unused")	private Chat notToBeGCd;
 
 	public static String MAIN_WINDOW_NAME = "Auction Sniper";
 	public static final String SNIPER_STATUS_NAME = "sniper status";
-
+	public static final String BID_COMMAND_FORMAT = "SOLVersion: 1.1; Command: BID; Price: %d;";
+	public static final String JOIN_COMMAND_FORMAT = "SOLVersion: 1.1; Command: JOIN;";
+	public static final String CLOSE_COMMAND_FORMAT = "SOLVersion: 1.1; Command: CLOSE;";
+	public static final String PRICE_COMMAND_FORMAT = "SOLVersion: 1.1; Event: PRICE; " +
+													   "CurrentPrice: %d; Increment: %d; Bidder: %s;";
+	
+	
 	private static final int ARG_HOSTNAME = 0;
 	private static final int ARG_USERNAME = 1;
 	private static final int ARG_PASSWORD = 2;
@@ -42,6 +50,7 @@ public class Main {
 
 	private void joinAuction(XMPPConnection connection, String itemId)
 			throws XMPPException {
+		disconnectWhenUICloses(connection);
 		Chat chat = connection.getChatManager().createChat(
 				auctionId(itemId, connection),
 				new MessageListener() {					
@@ -50,16 +59,24 @@ public class Main {
 						SwingUtilities.invokeLater(new Runnable(){
 							@Override
 							public void run() {
-								ui.showStatus(STATUS_LOST);								
+								ui.showStatus(STATUS_LOST);		 						
 							}		
 						});
 					}
 				});
 		this.notToBeGCd = chat;
 		
-		 chat.sendMessage(new Message());
+		chat.sendMessage(JOIN_COMMAND_FORMAT);
 	}
 	
+	private void disconnectWhenUICloses(final XMPPConnection connection) {
+		ui.addWindowListener(new WindowAdapter(){			
+			@Override public void  windowClosed(WindowEvent e){			
+				connection.disconnect();
+			}
+		});	
+	}
+
 	private static String auctionId(String itemId, XMPPConnection connection) {
 		return String.format(AUCTION_ID_FORMAT,itemId,connection.getServiceName()); 
 	}
@@ -79,10 +96,6 @@ public class Main {
 			public void run() {
 				ui = new MainWindow();				
 			}
-		});
-		
+		});		
 	}
-	
-	
-
 }
