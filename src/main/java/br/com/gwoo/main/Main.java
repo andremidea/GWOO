@@ -13,7 +13,9 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 
-public class Main {
+import br.com.gwoo.auctionSniper.AuctionEventListener;
+
+public class Main implements AuctionEventListener {
 	public static MainWindow ui;
 
 	@SuppressWarnings("unused")	private Chat notToBeGCd;
@@ -22,7 +24,7 @@ public class Main {
 	public static final String SNIPER_STATUS_NAME = "sniper status";
 	public static final String BID_COMMAND_FORMAT = "SOLVersion: 1.1; Command: BID; Price: %d;";
 	public static final String JOIN_COMMAND_FORMAT = "SOLVersion: 1.1; Command: JOIN;";
-	public static final String CLOSE_COMMAND_FORMAT = "SOLVersion: 1.1; Command: CLOSE;";
+	public static final String CLOSE_COMMAND_FORMAT = "SOLVersion: 1.1; Event: CLOSE;";
 	public static final String PRICE_COMMAND_FORMAT = "SOLVersion: 1.1; Event: PRICE; " +
 													   "CurrentPrice: %d; Increment: %d; Bidder: %s;";
 	
@@ -97,5 +99,21 @@ public class Main {
 				ui = new MainWindow();				
 			}
 		});		
+	}
+
+	@Override
+	public void auctionClose() {
+		SwingUtilities.invokeLater(new Runnable() {			
+			@Override
+			public void run() {
+				ui.showStatus(STATUS_LOST);				
+			}
+		});		
+	}
+
+	@Override
+	public void currentPrice(int i, int j) {
+		// TODO Auto-generated method stub
+		
 	}
 }
