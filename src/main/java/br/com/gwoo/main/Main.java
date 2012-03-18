@@ -13,9 +13,13 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 
+import br.com.gwoo.auction.Auction;
 import br.com.gwoo.auctionSniper.AuctionEventListener;
+import br.com.gwoo.auctionSniper.AuctionMessageTranslator;
+import br.com.gwoo.auctionSniper.AuctionSniper;
+import br.com.gwoo.auctionSniper.SniperListener;
 
-public class Main implements AuctionEventListener {
+public class Main implements SniperListener {
 	public static MainWindow ui;
 
 	@SuppressWarnings("unused")	private Chat notToBeGCd;
@@ -26,7 +30,7 @@ public class Main implements AuctionEventListener {
 	public static final String JOIN_COMMAND_FORMAT = "SOLVersion: 1.1; Command: JOIN;";
 	public static final String CLOSE_COMMAND_FORMAT = "SOLVersion: 1.1; Event: CLOSE;";
 	public static final String PRICE_COMMAND_FORMAT = "SOLVersion: 1.1; Event: PRICE; " +
-													   "CurrentPrice: %d; Increment: %d; Bidder: %s;";
+													   "Curjava.util.LocalerentPrice: %d; Increment: %d; Bidder: %s;";
 	
 	
 	private static final int ARG_HOSTNAME = 0;
@@ -52,22 +56,23 @@ public class Main implements AuctionEventListener {
 
 	private void joinAuction(XMPPConnection connection, String itemId)
 			throws XMPPException {
+	
 		disconnectWhenUICloses(connection);
-		Chat chat = connection.getChatManager().createChat(
-				auctionId(itemId, connection),
-				new MessageListener() {					
-					@Override
-					public void processMessage(Chat arg0, Message arg1) {
-						SwingUtilities.invokeLater(new Runnable(){
-							@Override
-							public void run() {
-								ui.showStatus(STATUS_LOST);		 						
-							}		
-						});
-					}
-				});
+		final Chat chat = connection.getChatManager().createChat(auctionId(itemId, connection), null);
 		this.notToBeGCd = chat;
 		
+		Auction auction = new Auction() {			
+			@Override
+			public void bid(int amount) {
+				try {
+					chat.sendMessage(String.format(BID_COMMAND_FORMAT, amount));
+				} catch (XMPPException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}				
+			}
+		};
+		chat.addMessageListener(new AuctionMessageTranslator(new AuctionSniper(auction, this)));
 		chat.sendMessage(JOIN_COMMAND_FORMAT);
 	}
 	
@@ -102,18 +107,20 @@ public class Main implements AuctionEventListener {
 	}
 
 	@Override
-	public void auctionClose() {
-		SwingUtilities.invokeLater(new Runnable() {			
-			@Override
+	public void sniperLost() {
+		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				ui.showStatus(STATUS_LOST);				
+				ui.showStatus(MainWindow.STATUS_LOST);
 			}
-		});		
+		});	
 	}
 
 	@Override
-	public void currentPrice(int i, int j) {
-		// TODO Auto-generated method stub
-		
+	public void sniperBidding() {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				ui.showStatus(MainWindow.STATUS_BIDDING);
+			}
+		});	
 	}
 }

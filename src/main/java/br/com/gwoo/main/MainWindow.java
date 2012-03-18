@@ -11,6 +11,10 @@ import javax.swing.border.LineBorder;
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame{
 	private final JLabel sniperStatus = createLabel(STATUS_JOINING);
+	
+	public static final String STATUS_JOINING = "Status Joining";
+	public static final String STATUS_LOST = "Status Lost";
+	public static final String STATUS_BIDDING = "Status Bidding";
 
 	public MainWindow(){
 		super("Auction Sniper");
